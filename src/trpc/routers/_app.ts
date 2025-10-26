@@ -1,20 +1,25 @@
 import { generateSlug } from "random-word-slugs";
-import { createTRPCRouter, protectedProcedure } from "../init";
+
 import prisma from "@/lib/db";
 import { inngest } from "@/inngest/client";
+import { createTRPCRouter, protectedProcedure } from "../init";
+
 export const appRouter = createTRPCRouter({
+  testAi: protectedProcedure.mutation(async () => {
+    await inngest.send({
+      name: "execute/ai",
+    });
+    return {
+      success: true,
+      message: "AI Job Queued",
+    };
+  }),
   getWorflows: protectedProcedure.query(({ ctx }) => {
     return prisma.workflow.findMany({
       where: { userId: ctx.auth.user.id },
     });
   }),
   createWorkflow: protectedProcedure.mutation(async ({ ctx }) => {
-    await inngest.send({
-      name: "test/hello.world",
-      data: {
-        email: ctx.auth.user.email,
-      },
-    });
     await prisma.workflow.create({
       data: {
         name: generateSlug(3),
